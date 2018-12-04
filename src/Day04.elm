@@ -2,181 +2,218 @@ module Day04 exposing (..)
 
 import Parser exposing (Parser, (|.), (|=))
 import Dict exposing (Dict)
-import Exts.Dict 
+import Exts.Dict
 
 
-type alias DateStamp = 
-    { month : Int 
-    , day : Int 
-    , hour : Int 
-    , minute : Int 
+type alias DateStamp =
+    { month : Int
+    , day : Int
+    , hour : Int
+    , minute : Int
     }
 
-type Event = 
-    GuardChange Int 
+
+type Event
+    = GuardChange Int
     | FallsAsleep
-    | WakesUp 
+    | WakesUp
 
-type alias EventStamp = 
-    { dateStamp : DateStamp 
-    , event : Event 
+
+type alias EventStamp =
+    { dateStamp : DateStamp
+    , event : Event
     }
 
-makeEventStamp : Int -> Int -> Int -> Int -> Event -> EventStamp 
-makeEventStamp month day hour minute event = 
-    { dateStamp = DateStamp month day hour minute 
-    , event = event 
+
+makeEventStamp : Int -> Int -> Int -> Int -> Event -> EventStamp
+makeEventStamp month day hour minute event =
+    { dateStamp = DateStamp month day hour minute
+    , event = event
     }
 
-leadingZeroIntParser : Parser Int 
-leadingZeroIntParser = 
-    Parser.oneOf 
-        [ Parser.succeed identity 
+
+leadingZeroIntParser : Parser Int
+leadingZeroIntParser =
+    Parser.oneOf
+        [ Parser.succeed identity
             |. Parser.symbol "0"
-            |= Parser.int 
-        , Parser.int 
+            |= Parser.int
+        , Parser.int
         ]
 
-eventStampParser : Parser EventStamp 
-eventStampParser = 
+
+eventStampParser : Parser EventStamp
+eventStampParser =
     Parser.succeed makeEventStamp
         |. Parser.symbol "[1518-"
         |= leadingZeroIntParser
         |. Parser.symbol "-"
         |= leadingZeroIntParser
         |. Parser.symbol " "
-        |= leadingZeroIntParser 
+        |= leadingZeroIntParser
         |. Parser.symbol ":"
-        |= leadingZeroIntParser 
+        |= leadingZeroIntParser
         |. Parser.symbol "] "
-        |= eventParser 
+        |= eventParser
 
-eventParser : Parser Event 
-eventParser = 
-    Parser.oneOf 
-        [ Parser.succeed FallsAsleep 
+
+eventParser : Parser Event
+eventParser =
+    Parser.oneOf
+        [ Parser.succeed FallsAsleep
             |. Parser.keyword "falls asleep"
-        , Parser.succeed WakesUp 
+        , Parser.succeed WakesUp
             |. Parser.keyword "wakes up"
-        ,  Parser.succeed GuardChange 
+        , Parser.succeed GuardChange
             |. Parser.symbol "Guard #"
-            |= Parser.int 
+            |= Parser.int
             |. Parser.symbol " begins shift"
         ]
 
-eventStamps = 
-    inputText 
-    |> String.lines 
-    |> List.filterMap (Parser.run eventStampParser >> Result.toMaybe)
-    |> List.sortWith (compareEventStamp)
 
-compareEventStamp a b = 
+eventStamps =
+    inputText
+        |> String.lines
+        |> List.filterMap (Parser.run eventStampParser >> Result.toMaybe)
+        |> List.sortWith (compareEventStamp)
+
+
+compareEventStamp a b =
     compareDateStamp a.dateStamp b.dateStamp
 
+
 compareDateStamp : DateStamp -> DateStamp -> Basics.Order
-compareDateStamp a b = 
-    case compare a.month b.month of 
-        EQ ->   
-            case compare a.day b.day of 
-                EQ -> 
-                    case compare a.hour b.hour of 
-                        EQ -> 
-                            compare a.minute b.minute 
-                        _ -> 
-                            compare a.hour b.hour 
-                _ ->    
-                    compare a.day b.day 
-        _ -> 
-            compare a.month b.month 
+compareDateStamp a b =
+    case compare a.month b.month of
+        EQ ->
+            case compare a.day b.day of
+                EQ ->
+                    case compare a.hour b.hour of
+                        EQ ->
+                            compare a.minute b.minute
+
+                        _ ->
+                            compare a.hour b.hour
+
+                _ ->
+                    compare a.day b.day
+
+        _ ->
+            compare a.month b.month
 
 
-type alias State = 
-    { 
-    guardLog : Dict GuardId (List Int) 
-    , sleepTime : Maybe Int 
-    , activeGuard : GuardId 
+type alias State =
+    { guardLog : Dict GuardId (List Int)
+    , sleepTime : Maybe Int
+    , activeGuard : GuardId
     }
-blankState = 
-    { guardLog = Dict.empty 
-    , sleepTime = Nothing 
+
+
+blankState =
+    { guardLog = Dict.empty
+    , sleepTime = Nothing
     , activeGuard = 0
     }
-type alias GuardId = Int 
 
-eventLogReducer : EventStamp -> State -> State 
-eventLogReducer eventStamp state = 
-    case eventStamp.event of 
-        GuardChange guardId -> 
+
+type alias GuardId =
+    Int
+
+
+eventLogReducer : EventStamp -> State -> State
+eventLogReducer eventStamp state =
+    case eventStamp.event of
+        GuardChange guardId ->
             { state | activeGuard = guardId }
-        FallsAsleep -> 
+
+        FallsAsleep ->
             { state | sleepTime = Just eventStamp.dateStamp.minute }
-        WakesUp -> 
+
+        WakesUp ->
             let
-                newMinutes = case state.sleepTime of 
-                    Just sleepTime -> 
-                        List.range sleepTime (eventStamp.dateStamp.minute - 1)
-                    Nothing -> 
-                        Debug.todo "Too much coffee"
-                newLogEntry = case Dict.get state.activeGuard state.guardLog of 
-                    Nothing -> 
-                        newMinutes 
-                    Just oldMinutes -> 
-                        oldMinutes ++ newMinutes 
+                newMinutes =
+                    case state.sleepTime of
+                        Just sleepTime ->
+                            List.range sleepTime (eventStamp.dateStamp.minute - 1)
+
+                        Nothing ->
+                            Debug.todo "Too much coffee"
+
+                newLogEntry =
+                    case Dict.get state.activeGuard state.guardLog of
+                        Nothing ->
+                            newMinutes
+
+                        Just oldMinutes ->
+                            oldMinutes ++ newMinutes
             in
-            { state | sleepTime = Nothing, guardLog = Dict.insert state.activeGuard newLogEntry state.guardLog }
+                { state | sleepTime = Nothing, guardLog = Dict.insert state.activeGuard newLogEntry state.guardLog }
 
-processedLog = List.foldl eventLogReducer blankState eventStamps 
-    |> .guardLog 
-part1Answer = 
+
+processedLog =
+    List.foldl eventLogReducer blankState eventStamps
+        |> .guardLog
+
+
+part1Answer =
     processedLog
-    |> Dict.toList 
-    |> List.sortBy (\(guardId, minutes) -> List.length minutes)
-    |> List.reverse 
-    |> List.head 
-    |> unsafeMaybe 
-    |> calcGuardIdTimesMinute 
-
-calcGuardIdTimesMinute (guardId, minutes) = 
-    let
-        minute = findMostFrequentMinute minutes
-    in
-        minute * guardId 
-
-findMostFrequentMinute : List (Int) -> Int 
-findMostFrequentMinute minutes = 
-    Exts.Dict.frequency minutes 
-            |> Dict.toList 
-            |> List.sortBy Tuple.second
-            |> List.reverse 
-            |> List.head 
-            |> unsafeMaybe
-            |> Tuple.first
-
-findBiggestFrequency : List Int -> Int 
-findBiggestFrequency minutes = 
-    Exts.Dict.frequency minutes 
-        |> Dict.values 
-        |> List.maximum 
-        |> Maybe.withDefault 0 
-
-unsafeMaybe : Maybe a -> a 
-unsafeMaybe maybe = 
-    case maybe of 
-        Just a -> a 
-        Nothing -> Debug.todo "unsafe Maybe"
-
-
-part2Answer = 
-    processedLog 
-        |> Dict.toList 
-        |> List.sortBy (\(guardId, minutes) -> findBiggestFrequency minutes)
-        |> List.reverse 
-        |> List.head 
+        |> Dict.toList
+        |> List.sortBy (\( guardId, minutes ) -> List.length minutes)
+        |> List.reverse
+        |> List.head
         |> unsafeMaybe
         |> calcGuardIdTimesMinute
 
 
-inputText = """[1518-04-21 00:57] wakes up
+calcGuardIdTimesMinute ( guardId, minutes ) =
+    let
+        minute =
+            findMostFrequentMinute minutes
+    in
+        minute * guardId
+
+
+findMostFrequentMinute : List Int -> Int
+findMostFrequentMinute minutes =
+    Exts.Dict.frequency minutes
+        |> Dict.toList
+        |> List.sortBy Tuple.second
+        |> List.reverse
+        |> List.head
+        |> unsafeMaybe
+        |> Tuple.first
+
+
+findBiggestFrequency : List Int -> Int
+findBiggestFrequency minutes =
+    Exts.Dict.frequency minutes
+        |> Dict.values
+        |> List.maximum
+        |> Maybe.withDefault 0
+
+
+unsafeMaybe : Maybe a -> a
+unsafeMaybe maybe =
+    case maybe of
+        Just a ->
+            a
+
+        Nothing ->
+            Debug.todo "unsafe Maybe"
+
+
+part2Answer =
+    processedLog
+        |> Dict.toList
+        |> List.sortBy (\( guardId, minutes ) -> findBiggestFrequency minutes)
+        |> List.reverse
+        |> List.head
+        |> unsafeMaybe
+        |> calcGuardIdTimesMinute
+
+
+inputText =
+    """[1518-04-21 00:57] wakes up
 [1518-09-03 00:12] falls asleep
 [1518-04-21 00:04] Guard #3331 begins shift
 [1518-10-29 00:51] falls asleep
