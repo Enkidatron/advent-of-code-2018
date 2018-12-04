@@ -1,8 +1,8 @@
-module Day04 exposing (..)
+module Day04 exposing (DateStamp, Event(..), EventStamp, GuardId, State, blankState, calcGuardIdTimesMinute, compareDateStamp, compareEventStamp, eventLogReducer, eventParser, eventStampParser, eventStamps, findBiggestFrequency, findMostFrequentMinute, inputText, leadingZeroIntParser, makeEventStamp, part1Answer, part2Answer, processedLog, unsafeMaybe)
 
-import Parser exposing (Parser, (|.), (|=))
 import Dict exposing (Dict)
 import Exts.Dict
+import Parser exposing ((|.), (|=), Parser)
 
 
 type alias DateStamp =
@@ -75,7 +75,7 @@ eventStamps =
     inputText
         |> String.lines
         |> List.filterMap (Parser.run eventStampParser >> Result.toMaybe)
-        |> List.sortWith (compareEventStamp)
+        |> List.sortWith compareEventStamp
 
 
 compareEventStamp a b =
@@ -147,7 +147,7 @@ eventLogReducer eventStamp state =
                         Just oldMinutes ->
                             oldMinutes ++ newMinutes
             in
-                { state | sleepTime = Nothing, guardLog = Dict.insert state.activeGuard newLogEntry state.guardLog }
+            { state | sleepTime = Nothing, guardLog = Dict.insert state.activeGuard newLogEntry state.guardLog }
 
 
 processedLog =
@@ -170,7 +170,7 @@ calcGuardIdTimesMinute ( guardId, minutes ) =
         minute =
             findMostFrequentMinute minutes
     in
-        minute * guardId
+    minute * guardId
 
 
 findMostFrequentMinute : List Int -> Int

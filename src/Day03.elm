@@ -1,10 +1,10 @@
-module Day03 exposing (..)
+module Day03 exposing (Claim, claimDoesNotOverlap, claimParser, claimToPointList, claims, claimsParser, listToTupleUnsafe, part1Answer, part2Answer, pointClaimMap, pointDoesNotOverlap)
 
 import Day03Input exposing (..)
-import Parser exposing (Parser, (|=), (|.))
-import List.Extra
-import Exts.Dict
 import Dict exposing (Dict)
+import Exts.Dict
+import List.Extra
+import Parser exposing ((|.), (|=), Parser)
 
 
 type alias Claim =
@@ -58,8 +58,8 @@ claimToPointList claim =
         ys =
             List.range (claim.startY + 1) (claim.startY + claim.height)
     in
-        List.Extra.cartesianProduct [ xs, ys ]
-            |> List.map listToTupleUnsafe
+    List.Extra.cartesianProduct [ xs, ys ]
+        |> List.map listToTupleUnsafe
 
 
 listToTupleUnsafe : List a -> ( a, a )
@@ -88,15 +88,15 @@ claimDoesNotOverlap pointMap claim =
         claimPoints =
             claim |> claimToPointList
     in
-        claimPoints |> List.all (pointDoesNotOverlap pointMap)
+    claimPoints |> List.all (pointDoesNotOverlap pointMap)
 
 
 pointDoesNotOverlap pointMap point =
     let
         pointCount =
-            Dict.get point pointMap |> Maybe.withDefault (0)
+            Dict.get point pointMap |> Maybe.withDefault 0
     in
-        pointCount == 1
+    pointCount == 1
 
 
 part2Answer =

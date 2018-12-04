@@ -1,4 +1,4 @@
-module Day01 exposing (..)
+module Day01 exposing (answer, input, inputList, part2, part2Answer)
 
 import Set
 
@@ -24,10 +24,11 @@ part2 currentInput seenValues currentFrequency =
                 nextFrequency =
                     currentFrequency + nextInput
             in
-                if Set.member nextFrequency seenValues then
-                    nextFrequency
-                else
-                    part2 inputs (Set.insert nextFrequency seenValues) nextFrequency
+            if Set.member nextFrequency seenValues then
+                nextFrequency
+
+            else
+                part2 inputs (Set.insert nextFrequency seenValues) nextFrequency
 
         [] ->
             part2 inputList seenValues currentFrequency

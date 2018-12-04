@@ -1,4 +1,4 @@
-module Day03Input exposing (..)
+module Day03Input exposing (inputText)
 
 
 inputText =

@@ -1,8 +1,8 @@
-module Day02 exposing (..)
+module Day02 exposing (doTheNextThing, findEditDistanceOne, findPart2Answer, hasNthings, inputLines, inputText, inputsWithThreeRepeatsCount, inputsWithTwoRepeatsCount, part1Answer, part2Answer)
 
-import Exts.Dict
 import Dict
 import EditDistance
+import Exts.Dict
 
 
 inputText =
@@ -42,7 +42,7 @@ findPart2Answer lines =
         nextLine :: restOfLines ->
             List.filterMap (findEditDistanceOne nextLine) restOfLines
                 |> List.head
-                |> (doTheNextThing nextLine restOfLines)
+                |> doTheNextThing nextLine restOfLines
 
         [] ->
             "Don't know"
@@ -51,6 +51,7 @@ findPart2Answer lines =
 findEditDistanceOne baseString compString =
     if EditDistance.levenshteinOfStrings compString baseString == 1 then
         Just compString
+
     else
         Nothing
 
