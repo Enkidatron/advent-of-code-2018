@@ -1,4 +1,4 @@
-module Day06 exposing (Point, bottomWallInfinites, countClosestIfNoTie, findClosestInputPoint, getInfinitesFromWall, getTotalDistanceForPoint, infinites, inputText, leftWall, leftWallInfinites, listToPointUnsafe, makePoint, manhattanDistance, part1Answer, part2Answer, points, rightWallInfinites, topWallInfinites)
+module Day06 exposing (Point, bottomWallInfinites, countClosestIfNoTie, findClosestInputPoint, getInfinitesFromWall, getTotalDistanceForPoint, infinites, inputText, leftWallInfinites, listToPointUnsafe, makePoint, manhattanDistance, part1Answer, part2Answer, points, rightWallInfinites, topWallInfinites)
 
 import Dict
 import Exts.Dict
