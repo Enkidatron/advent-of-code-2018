@@ -166,7 +166,6 @@ simulate2 state =
             if slotsOpen > 0 then
                 state.stepsLeft
                     |> List.filter (notBlocked2 newReqsLeft)
-                    |> List.filter (notInWorkQueue incompleteSteps)
                     |> List.take slotsOpen
 
             else
@@ -197,12 +196,6 @@ simulate2 state =
 notBlocked2 : List Requirement -> Step -> Bool
 notBlocked2 reqs step =
     notBlocked reqs step.name
-
-
-notInWorkQueue : List Step -> Step -> Bool
-notInWorkQueue workQueue step =
-    List.filter (\wipStep -> wipStep.name == step.name) workQueue
-        |> (\list -> list == [])
 
 
 decrementWorkTime : Step -> Step
