@@ -1,6 +1,7 @@
-module Day08 exposing (Node(..), NodeInfo, State, calculateNodeValue, initialState, inputNumbers, inputText, iterateState, nodeFromNumbers, part1Answer, part1Test, part2, part2Answer, part2Test, testInput, testNumbers)
+module Day08 exposing (Header, Node(..), NodeInfo, State, Tree(..), calculateNodeValue, calculateTreeValue, headerParser, initialState, inputNumbers, inputText, iterateState, metadataListParser, metadataListParserHelper, nodeFromNumbers, part1Answer, part1AnswerAlt, part1Test, part2, part2Answer, part2AnswerAlt, part2Test, sumTreeMetadata, testInput, testNumbers, treeListParser, treeListParserHelper, treeParser)
 
 import Dict exposing (Dict)
+import Parser exposing ((|.), (|=), Parser, Step(..))
 
 
 type alias NodeInfo =
@@ -144,6 +145,105 @@ part2Answer =
 
 part2Test =
     part2 testNumbers
+
+
+
+---- Now with Parsers (this work done after I got both stars)
+---- Heavily inspired by @discocommando's solution
+
+
+type alias Header =
+    { childCount : Int
+    , metadataCount : Int
+    }
+
+
+type Tree
+    = Tree Header (List Tree) (List Int)
+
+
+treeParser : Parser Tree
+treeParser =
+    headerParser
+        |> Parser.andThen
+            (\header ->
+                Parser.succeed (Tree header)
+                    |= treeListParser header.childCount
+                    |= metadataListParser header.metadataCount
+            )
+
+
+headerParser : Parser Header
+headerParser =
+    Parser.succeed Header
+        |= Parser.int
+        |. Parser.spaces
+        |= Parser.int
+        |. Parser.spaces
+
+
+treeListParser : Int -> Parser (List Tree)
+treeListParser numTrees =
+    Parser.loop ( [], numTrees ) treeListParserHelper
+
+
+treeListParserHelper : ( List Tree, Int ) -> Parser (Step ( List Tree, Int ) (List Tree))
+treeListParserHelper ( revTreesSoFar, numTrees ) =
+    if numTrees <= 0 then
+        Parser.succeed (Done (List.reverse revTreesSoFar))
+
+    else
+        Parser.succeed (\tree -> Loop ( tree :: revTreesSoFar, numTrees - 1 ))
+            |= treeParser
+
+
+metadataListParser : Int -> Parser (List Int)
+metadataListParser numMetadata =
+    Parser.loop ( [], numMetadata ) metadataListParserHelper
+
+
+metadataListParserHelper : ( List Int, Int ) -> Parser (Step ( List Int, Int ) (List Int))
+metadataListParserHelper ( revMetadataSoFar, numLeft ) =
+    if numLeft <= 0 then
+        Parser.succeed (Done (List.reverse revMetadataSoFar))
+
+    else
+        Parser.succeed (\metadata -> Loop ( metadata :: revMetadataSoFar, numLeft - 1 ))
+            |= Parser.int
+            |. Parser.spaces
+
+
+sumTreeMetadata : Tree -> Int
+sumTreeMetadata (Tree header children metadata) =
+    List.sum metadata + List.sum (List.map sumTreeMetadata children)
+
+
+part1AnswerAlt =
+    Parser.run treeParser inputText
+        |> Result.map sumTreeMetadata
+
+
+calculateTreeValue : Tree -> Int
+calculateTreeValue (Tree header children metadata) =
+    case children of
+        [] ->
+            List.sum metadata
+
+        _ ->
+            let
+                childDict : Dict Int Tree
+                childDict =
+                    List.indexedMap (\index child -> ( index + 1, child )) children
+                        |> Dict.fromList
+            in
+            List.filterMap (\metadatum -> Dict.get metadatum childDict) metadata
+                |> List.map calculateTreeValue
+                |> List.sum
+
+
+part2AnswerAlt =
+    Parser.run treeParser inputText
+        |> Result.map calculateTreeValue
 
 
 inputNumbers =
