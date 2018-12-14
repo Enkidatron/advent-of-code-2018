@@ -1,4 +1,4 @@
-module Day14Alt exposing (State, inputNumber, makePattern, makeState, part1, part2, part2BlankState, patternMatchesNewParts, recursePart2, recursivelyExpandState, scorePart1, stepState, stepState2)
+module Day14 exposing (State, inputNumber, makePattern, makeState, part1, part2, part2BlankState, patternMatchesNewParts, recursePart2, recursivelyExpandState, scorePart1, stepState, stepState2)
 
 import Array exposing (Array)
 
