@@ -66,7 +66,7 @@ stepXMinutes x land =
         land
 
     else
-        stepXMinutes (x - 1) (stepOneMinute land)
+        stepXMinutes (x - 1) (stepOneMinute land |> visualizeLand)
 
 
 stepLineOneMinute land y line =
