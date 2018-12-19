@@ -352,7 +352,7 @@ programDescr2Part2 =
     """
     (part1 r4 = 958)
     r4 = 10551358
-    Find all prime factors of r4
+    Find all factors of r4
     and sum them together
     """
 
